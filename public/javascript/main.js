@@ -24,7 +24,9 @@ socket.on('DUPLICATED-USERNAME',() => {
 })
 socket.on('SERVER-SEND-USERLIST',userList => {
     localStorage.setItem('username',username)
-    userList.forEach(user => {
+    const otherUsers = [...userList]
+    otherUsers.splice(userList.findIndex(user => user.id === userId),1)
+    otherUsers.forEach(user => {
         $('.user-list__list').append(`
             <li class="user-list__item" data-id=${user.id}>
                 ${user.username}
@@ -73,7 +75,6 @@ $('.call__decline-btn').click(e => {
 }) 
 function answserCall() {
     const peer =  new SimplePeer({initiator: false, trickle: false, stream})
-    console.log('peer',peer)
     peer.on('signal',data => {
         socket.emit('ANSWER-CALL',{signal : data,to : call.from.userId})
     })
