@@ -33,8 +33,8 @@ io.on('connection',socket => {
     socket.on('ANSWER-CALL',({signal,to}) => {
         io.to(to).emit('CALL-ACCEPT',signal)
     })
-    socket.on('DECLINDE-CALL',(to) => {
-        io.to(to).emit('DECLINDE-CALL')
+    socket.on('DECLINE-CALL',(to) => {
+        io.to(to).emit('DECLINE-CALL')
     })
 })
  const PORT = process.env.PORT || 8080

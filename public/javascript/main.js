@@ -1,5 +1,5 @@
 const socket = io('https://rtc-video-call.herokuapp.com')
-let username = localStorage.getItem('username')
+let username = sessionStorage.getItem('username')
 let userId = null
 let stream = null
 let call = null
@@ -23,7 +23,7 @@ socket.on('DUPLICATED-USERNAME',() => {
     socket.emit('CLIENT-SEND-USERNAME',username)
 })
 socket.on('SERVER-SEND-USERLIST',userList => {
-    localStorage.setItem('username',username)
+    sessionStorage.setItem('username',username)
     const otherUsers = [...userList]
     otherUsers.splice(userList.findIndex(user => user.id === userId),1)
     otherUsers.forEach(user => {
@@ -36,6 +36,8 @@ socket.on('SERVER-SEND-USERLIST',userList => {
     })
 })
 socket.on('NEW-USER-CONNECT',({username,id}) => {
+    if($(`.user-list__item[data-id=${id}]`).length)
+        return
     $('.user-list__list').append(`
         <li class="user-list__item" data-id=${id}>
             ${username}
@@ -47,11 +49,15 @@ socket.on('USER-DISCONNECT',id => {
     $(`.user-list__item[data-id=${id}]`).remove()
 })
 socket.on('CALL-USER',({signal,from}) => {
-    call = {signal,from}
-    $('.call__content').text(`${from.username} is calling...`)
-    $('#modalCall').modal('show')
+    if(peerConnect)
+        socket.emit('DECLINE-CALL',from.userId)
+    else {
+        call = {signal,from}
+        $('.call__content').text(`${from.username} is calling...`)
+        $('#modalCall').modal('show')
+    }
 })
-socket.on('DECLINDE-CALL',() => {
+socket.on('DECLINE-CALL',() => {
     peerConnect = null
     alert(`User is busy`)
     $('.call__empty').text(`No Connection`)
@@ -71,7 +77,7 @@ $('.call__leave-call').click(e => {
     leaveCall()
 })
 $('.call__decline-btn').click(e => {
-    socket.emit('DECLINDE-CALL',call.from.userId)
+    socket.emit('DECLINE-CALL',call.from.userId)
 }) 
 function answserCall() {
     const peer =  new SimplePeer({initiator: false, trickle: false, stream})
